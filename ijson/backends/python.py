@@ -28,6 +28,7 @@ class Lexer(object):
 
     def __iter__(self):
         self.buffer = ''
+        self._buffer = None
         self.pos = 0
         return self
 
@@ -44,11 +45,21 @@ class Lexer(object):
                 else:
                     self.pos += 1
                     return char
-            self.buffer = self.f.read(BUFSIZE).decode('utf-8')
+            self.buffer = self._read_(BUFSIZE).decode('utf-8')
             self.pos = 0
             if not len(self.buffer):
                 raise StopIteration
     next = __next__
+
+    def _read_(self, size):
+        if self._buffer == None:
+            self._buffer = self.f.read(size)
+        ret = self._buffer
+        self._buffer = self.f.read(size)
+        while len(self._buffer) and ord(self._buffer[:1]) & 0xc0 == 0x80:
+            ret += self._buffer[:1]
+            self._buffer = self._buffer[1:]
+        return ret
 
     def lexem(self):
         current = self.pos
@@ -59,7 +70,7 @@ class Lexer(object):
                 break
             else:
                 current = len(self.buffer)
-                self.buffer += self.f.read(BUFSIZE).decode('utf-8')
+                self.buffer += self._read_(BUFSIZE).decode('utf-8')
                 if len(self.buffer) == current:
                     break
         result = self.buffer[self.pos:current]
@@ -85,7 +96,7 @@ class Lexer(object):
                     return result
             except ValueError:
                 old_len = len(self.buffer)
-                self.buffer += self.f.read(BUFSIZE).decode('utf-8')
+                self.buffer += self._read_(BUFSIZE).decode('utf-8')
                 if len(self.buffer) == old_len:
                     raise common.IncompleteJSONError()
 
