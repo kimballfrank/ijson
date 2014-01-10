@@ -147,6 +147,7 @@ def parse_value(lexer, symbol=None):
             yield ('string', ''.join(unescape(symbol[1:-1])))
         else:
             try:
+                # number = Decimal(symbol) if '.' in symbol else int(symbol)
                 number = Decimal(symbol) if '.' in symbol else int(symbol)
                 yield ('number', number)
             except ValueError:
