@@ -31,7 +31,7 @@ def number(value):
     try:
         return int(value)
     except ValueError:
-        return Decimal(value)
+        return float(value)
 
 _callback_data = [
     # Mapping of JSON parser events to callback C types and value converters.
